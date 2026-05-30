@@ -1,55 +1,98 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
+import { useState, useMemo } from "react";
+import { StockChart } from "./components/StockChart";
+import { MockDataService } from "./services/MockDataService";
 import "./App.css";
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+const STOCKS = [
+  { symbol: "2330", name: "TSMC (台積電)" },
+  { symbol: "0050", name: "Yuanta 50 (元大台灣50)" },
+  { symbol: "2317", name: "Foxconn (鴻海)" },
+];
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+function App() {
+  const [selectedSymbol, setSelectedSymbol] = useState(STOCKS[0].symbol);
+
+  // Use useMemo instead of useEffect + useState to avoid cascading renders
+  const chartData = useMemo(() => {
+    return MockDataService.getStockData(selectedSymbol, 120);
+  }, [selectedSymbol]);
+
+  const currentStock = useMemo(() => 
+    STOCKS.find(s => s.symbol === selectedSymbol),
+    [selectedSymbol]
+  );
 
   return (
-    <main className="container mx-auto p-8 flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-4xl font-bold mb-8">Welcome to Tauri + React</h1>
+    <main className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-6xl mx-auto">
+        <header className="mb-8 flex justify-between items-end">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Taiwan Stock Watch</h1>
+            <p className="text-gray-500">Interactive Price & Volume Visualization</p>
+          </div>
+          
+          <div className="flex flex-col gap-2">
+            <label htmlFor="stock-select" className="text-sm font-medium text-gray-700">Select Asset</label>
+            <select
+              id="stock-select"
+              value={selectedSymbol}
+              onChange={(e) => setSelectedSymbol(e.target.value)}
+              className="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-64 p-2.5 shadow-sm"
+            >
+              {STOCKS.map((stock) => (
+                <option key={stock.symbol} value={stock.symbol}>
+                  {stock.symbol} - {stock.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </header>
 
-      <div className="flex gap-8 mb-8">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="h-24 w-24 hover:drop-shadow-xl transition-all" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="h-24 w-24 hover:drop-shadow-xl transition-all" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="h-24 w-24 hover:drop-shadow-xl transition-all animate-spin-slow" alt="React logo" />
-        </a>
+        <section className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 p-6">
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                TWSE
+              </span>
+              <h2 className="text-2xl font-bold text-gray-800">
+                {currentStock?.symbol} <span className="text-gray-400 font-normal">| {currentStock?.name}</span>
+              </h2>
+            </div>
+            
+            <div className="flex gap-4 text-sm">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-[#ef5350]"></div>
+                <span className="text-gray-600 font-medium">Up</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-[#26a69a]"></div>
+                <span className="text-gray-600 font-medium">Down</span>
+              </div>
+            </div>
+          </div>
+
+          <StockChart data={chartData} />
+          
+          <div className="mt-4 text-xs text-gray-400 italic text-right">
+            * Displaying synthetic data for development purposes.
+          </div>
+        </section>
+
+        <footer className="mt-12 grid grid-cols-3 gap-6">
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+            <h3 className="font-semibold text-gray-800 mb-2">Performance</h3>
+            <p className="text-sm text-gray-500 line-clamp-2">Optimized with TradingView's lightweight-charts for smooth interactivity.</p>
+          </div>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+            <h3 className="font-semibold text-gray-800 mb-2">Localization</h3>
+            <p className="text-sm text-gray-500 line-clamp-2">Built-in support for Taiwanese market color conventions (Red=Up).</p>
+          </div>
+          <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
+            <h3 className="font-semibold text-gray-800 mb-2">Interactivity</h3>
+            <p className="text-sm text-gray-500 line-clamp-2">Real-time crosshair tracking and volume overlays enabled.</p>
+          </div>
+        </footer>
       </div>
-      <p className="mb-8 text-gray-600">Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="flex gap-4 mb-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button 
-          type="submit"
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Greet
-        </button>
-      </form>
-      <p className="text-xl font-semibold">{greetMsg}</p>
     </main>
   );
 }
