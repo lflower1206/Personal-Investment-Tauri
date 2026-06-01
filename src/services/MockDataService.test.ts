@@ -48,6 +48,22 @@ describe('MockDataService', () => {
       expect(Math.round(point.open * 100) % 5).toBe(0);
       expect(Math.round(point.close * 100) % 5).toBe(0);
     });
+
+    // 2454 has a tick size of 5.0
+    const data2454 = MockDataService.getStockData('2454', 20);
+    data2454.forEach(point => {
+      expect(point.open % 5).toBe(0);
+      expect(point.close % 5).toBe(0);
+    });
+
+    // 2308 and 2603 have a tick size of 0.5
+    ['2308', '2603'].forEach(sym => {
+      const dataSym = MockDataService.getStockData(sym, 20);
+      dataSym.forEach(point => {
+        expect(Math.round(point.open * 10) % 5).toBe(0);
+        expect(Math.round(point.close * 10) % 5).toBe(0);
+      });
+    });
   });
 
   it('generates realistic OHLC relationships', () => {

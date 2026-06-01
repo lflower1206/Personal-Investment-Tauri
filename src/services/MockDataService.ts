@@ -101,6 +101,12 @@ export class MockDataService {
         return this.generateTWMockData(days, 190, 0.015, { tickSize: 0.05, priceLimitPercent: 0.10 });
       case '2317': // Foxconn
         return this.generateTWMockData(days, 210, 0.025, { tickSize: 0.5, priceLimitPercent: 0.10 });
+      case '2454': // MediaTek
+        return this.generateTWMockData(days, 1350, 0.03, { tickSize: 5.0, priceLimitPercent: 0.10 });
+      case '2308': // Delta Electronics
+        return this.generateTWMockData(days, 380, 0.02, { tickSize: 0.5, priceLimitPercent: 0.10 });
+      case '2603': // Evergreen Marine
+        return this.generateTWMockData(days, 195, 0.035, { tickSize: 0.5, priceLimitPercent: 0.10 });
       default:
         return this.generateTWMockData(days, 100, 0.04, { tickSize: 0.1, priceLimitPercent: 0.10 });
     }
